@@ -1,9 +1,27 @@
 package main
 
 import (
+	constants "TxnManagement/contants"
+	"TxnManagement/controllers"
+	"TxnManagement/repositories"
+	"TxnManagement/repositories/models"
+	secretManager "cloud.google.com/go/secretmanager/apiv1"
+	"cloud.google.com/go/secretmanager/apiv1/secretmanagerpb"
+	"context"
 	"github.com/gin-gonic/gin"
 	"log"
+	"os"
+	"strconv"
+	"sync"
 )
+
+var once = sync.Once{}
+var baseURL string
+var mongoDB string
+var mongoUrlSecretName string
+var apiSecretName string
+var transactionRetries int
+var logLevel string
 
 // @title Transaction Management Server
 // @version 1.0.0
@@ -21,7 +39,16 @@ import (
 func main() {
 	r := gin.Default()
 
-	r.GET("/ping", Ping)
+	once.Do(initialize)
+
+	authController, transactionController := getHandlers()
+
+	r.GET("/ping", controllers.Ping)
+	r.POST("/admin/login", authController.Login)
+	r.GET("/admin/register", authController.Register)
+	r.GET("/admin/token/refresh", authController.RefreshToken)
+	r.POST("/transaction", transactionController.AddTransaction)
+	r.GET("/transaction", transactionController.GetTransactions)
 
 	err := r.Run()
 	if err != nil {
@@ -30,11 +57,79 @@ func main() {
 	}
 }
 
-func Ping(c *gin.Context) {
-	response := PongResponse{Message: "pong"}
-	c.JSON(200, &response)
+func getHandlers() (*controllers.AuthController, *controllers.TransactionController) {
+	log.Println("Initializing handlers")
+
+	mongoURL := accessSecretVersion(mongoUrlSecretName)
+	apiSecret := accessSecretVersion(apiSecretName)
+
+	var adminRepository models.AdminRepository
+	var customerRepository models.CustomerRepository
+	var transactionRepository models.TransactionRepository
+	customerRepository = repositories.NewCustomerRepository(mongoURL, mongoDB, logLevel)
+	transactionRepository = repositories.NewTransactionRepository(mongoURL, mongoDB, logLevel)
+
+	authController := controllers.NewAuthController(adminRepository, apiSecret, logLevel)
+	transactionController := controllers.NewTransactionController(customerRepository, transactionRepository,
+		transactionRetries, apiSecret, logLevel)
+
+	log.Println("Initialized all handlers")
+	return authController, transactionController
 }
 
-type PongResponse struct {
-	Message string `json:"message" example:"pong"`
+func initialize() {
+	var err error
+	baseURL = os.Getenv("BASE_URL")
+	if baseURL == "" {
+		baseURL = "http://localhost:8080"
+	}
+	mongoUrlSecretName = os.Getenv("MONGO_SECRET_NAME")
+	mongoDB = os.Getenv("MONGO_DB")
+	if mongoUrlSecretName == "" || mongoDB == "" {
+		log.Fatal("Mongo not configured")
+	}
+
+	apiSecretName = os.Getenv("API_SECRET_NAME")
+	if apiSecretName == "" {
+		apiSecretName = "API_SECRET"
+	}
+
+	transactionRetriesString := os.Getenv("TRANSACTION_RETRIES")
+	if transactionRetriesString == "" {
+		transactionRetriesString = "3"
+	}
+	log.Println("USING TRANSACTION_RETRIES: " + transactionRetriesString)
+	transactionRetries, err = strconv.Atoi(transactionRetriesString)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	logLevel = os.Getenv("LOG_LEVEL")
+	if logLevel == "" {
+		logLevel = constants.Info
+	}
+}
+
+func accessSecretVersion(secretName string) string {
+	ctx := context.Background()
+	client, err := secretManager.NewClient(ctx)
+	if err != nil {
+		log.Fatal("Error in initializing client for secret manager: ", err)
+		return ""
+	}
+	defer func(client *secretManager.Client) {
+		err := client.Close()
+		if err != nil {
+			log.Fatal("Error in closing client for secret manager: ", err)
+		}
+	}(client)
+	req := &secretmanagerpb.AccessSecretVersionRequest{
+		Name: secretName,
+	}
+	result, err := client.AccessSecretVersion(ctx, req)
+	if err != nil {
+		log.Fatal("Error in calling access API for retrieving secret data: ", err)
+		return ""
+	}
+	return string(result.Payload.Data)
 }
