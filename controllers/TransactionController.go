@@ -5,7 +5,7 @@ import (
 	"TxnManagement/controllers/exceptions"
 	controllerModels "TxnManagement/controllers/models"
 	"TxnManagement/controllers/utils"
-	"TxnManagement/repositories/models"
+	repoModels "TxnManagement/repositories/models"
 	"TxnManagement/services"
 	"encoding/json"
 	"errors"
@@ -22,8 +22,8 @@ type TransactionController struct {
 	logger             *constants.LoggingUtils
 }
 
-func NewTransactionController(customerRepository models.CustomerRepository,
-	transactionRepository models.TransactionRepository,
+func NewTransactionController(customerRepository repoModels.CustomerRepository,
+	transactionRepository repoModels.TransactionRepository,
 	transactionRetries int,
 	apiSecret string,
 	logLevel string,
@@ -128,7 +128,7 @@ func (t *TransactionController) GetCustomers(c *gin.Context) {
 	}
 	if parsedParams["keyword"] == nil {
 		t.logger.Error("error in parsing keyword", err)
-		c.JSON(400, err.Error())
+		c.JSON(400, errors.New("error in parsing keyword"))
 		return
 	}
 

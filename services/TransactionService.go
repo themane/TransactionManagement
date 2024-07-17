@@ -44,7 +44,7 @@ func (t *TransactionService) AddTransaction(transactionRequest controllerModels.
 			return err
 		}
 	}
-	transactionData, err := models.NewTransactionData(transactionRequest)
+	transactionData, err := transactionRequest.GetTransactionData()
 	if err != nil {
 		return err
 	}
