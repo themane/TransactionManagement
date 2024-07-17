@@ -16,11 +16,11 @@ const (
 func GetMongoConnection(mongoURL string) (*mongo.Client, context.Context) {
 	cmdMonitor := &event.CommandMonitor{
 		Started: func(_ context.Context, evt *event.CommandStartedEvent) {
-			//log.Print(evt.Command)
+			log.Print(evt.Command)
 		},
 	}
-	ctx, cancel := context.WithTimeout(context.Background(), connectTimeoutSecs*time.Second)
-	defer cancel()
+	ctx, _ := context.WithTimeout(context.Background(), connectTimeoutSecs*time.Second)
+	// defer cancel()
 	client, err := mongo.Connect(ctx, options.Client().ApplyURI(mongoURL).SetMonitor(cmdMonitor))
 	if err != nil {
 		log.Fatal(err)

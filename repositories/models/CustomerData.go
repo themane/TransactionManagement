@@ -6,7 +6,7 @@ type CustomerData struct {
 	Father  string          `json:"father_name" bson:"father_name"`
 	Mobiles []string        `json:"mobiles" bson:"mobiles"`
 	Address CustomerAddress `json:"address" bson:"address"`
-	New     bool            `json:"new" bson:"-"`
+	New     bool            `json:"new,omitempty" bson:"-"`
 }
 
 type CustomerAddress struct {

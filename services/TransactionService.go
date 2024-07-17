@@ -106,7 +106,7 @@ func (t *TransactionService) FetchTransactions(
 }
 
 func (t *TransactionService) getTransactionsResponse(transactionData []models.TransactionData) ([]controllerModels.TransactionResponse, error) {
-	var customerIdSet utils.Set
+	customerIdSet := utils.NewSet()
 	for _, transaction := range transactionData {
 		customerIdSet.Push(transaction.Customer.Id)
 	}

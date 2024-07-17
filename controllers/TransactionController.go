@@ -104,14 +104,18 @@ func (t *TransactionController) GetTransactions(c *gin.Context) {
 
 	t.logger.Printf("Fetching transactions for filter: "+
 		"customer_id: %s, village:%s, start_date: %s, end_date: %s, page: %s, page_size: %s",
-		*parsedParams["customer_id"], *parsedParams["village"], *parsedParams["start_date"], *parsedParams["end_date"], *parsedParams["page"], *parsedParams["page_size"])
+		utils.ToString(parsedParams["customer_id"]), utils.ToString(parsedParams["village"]),
+		utils.ToString(parsedParams["start_date"]), utils.ToString(parsedParams["end_date"]),
+		utils.ToString(parsedParams["page"]), utils.ToString(parsedParams["page_size"]))
 
 	response, err := t.transactionService.FetchTransactions(parsedParams["customer_id"], parsedParams["village"],
 		parsedParams["start_date"], parsedParams["end_date"], parsedParams["page"], parsedParams["page_size"])
 	if err != nil {
 		msg := fmt.Sprintf("error in gathering transactions for filter: "+
 			"customer_id: %s, village:%s, start_date: %s, end_date: %s, page: %s, page_size: %s",
-			*parsedParams["customer_id"], *parsedParams["village"], *parsedParams["start_date"], *parsedParams["end_date"], *parsedParams["page"], *parsedParams["page_size"])
+			utils.ToString(parsedParams["customer_id"]), utils.ToString(parsedParams["village"]),
+			utils.ToString(parsedParams["start_date"]), utils.ToString(parsedParams["end_date"]),
+			utils.ToString(parsedParams["page"]), utils.ToString(parsedParams["page_size"]))
 		t.logger.Error(msg, err)
 		c.JSON(500, controllerModels.ErrorResponse{Message: "error in getting transactions. contact administrators for more info", HttpCode: 500})
 		return
@@ -119,7 +123,9 @@ func (t *TransactionController) GetTransactions(c *gin.Context) {
 	if response == nil {
 		msg := fmt.Sprintf("transactions not found for filter: "+
 			"customer_id: %s, village:%s, start_date: %s, end_date: %s, page: %s, page_size: %s",
-			*parsedParams["customer_id"], *parsedParams["village"], *parsedParams["start_date"], *parsedParams["end_date"], *parsedParams["page"], *parsedParams["page_size"])
+			utils.ToString(parsedParams["customer_id"]), utils.ToString(parsedParams["village"]),
+			utils.ToString(parsedParams["start_date"]), utils.ToString(parsedParams["end_date"]),
+			utils.ToString(parsedParams["page"]), utils.ToString(parsedParams["page_size"]))
 		t.logger.Info(msg)
 		c.JSON(204, nil)
 		return
@@ -157,19 +163,19 @@ func (t *TransactionController) GetCustomers(c *gin.Context) {
 	}
 
 	t.logger.Printf("Fetching customers for filter: keyword: %s, page: %s, page_size: %s",
-		*parsedParams["keyword"], *parsedParams["page"], *parsedParams["page_size"])
+		utils.ToString(parsedParams["keyword"]), utils.ToString(parsedParams["page"]), utils.ToString(parsedParams["page_size"]))
 
 	response, err := t.customerService.FetchCustomers(*parsedParams["keyword"], parsedParams["page"], parsedParams["page_size"])
 	if err != nil {
 		msg := fmt.Sprintf("error in fetching customers for filter: keyword: %s, page: %s, page_size: %s",
-			*parsedParams["keyword"], *parsedParams["page"], *parsedParams["page_size"])
+			utils.ToString(parsedParams["keyword"]), utils.ToString(parsedParams["page"]), utils.ToString(parsedParams["page_size"]))
 		t.logger.Error(msg, err)
 		c.JSON(500, controllerModels.ErrorResponse{Message: "error in getting customers. contact administrators for more info", HttpCode: 500})
 		return
 	}
 	if response == nil {
 		msg := fmt.Sprintf("customers not found for filter: keyword: %s, page: %s, page_size: %s",
-			*parsedParams["keyword"], *parsedParams["page"], *parsedParams["page_size"])
+			utils.ToString(parsedParams["keyword"]), utils.ToString(parsedParams["page"]), utils.ToString(parsedParams["page_size"]))
 		t.logger.Info(msg)
 		c.JSON(204, nil)
 		return

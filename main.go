@@ -4,7 +4,6 @@ import (
 	constants "TxnManagement/contants"
 	"TxnManagement/controllers"
 	"TxnManagement/repositories"
-	"TxnManagement/repositories/models"
 	secretManager "cloud.google.com/go/secretmanager/apiv1"
 	"cloud.google.com/go/secretmanager/apiv1/secretmanagerpb"
 	"context"
@@ -62,11 +61,9 @@ func getHandlers() (*controllers.AuthController, *controllers.TransactionControl
 	mongoURL := accessSecretVersion(mongoUrlSecretName)
 	apiSecret := accessSecretVersion(apiSecretName)
 
-	var adminRepository models.AdminRepository
-	var customerRepository models.CustomerRepository
-	var transactionRepository models.TransactionRepository
-	customerRepository = repositories.NewCustomerRepository(mongoURL, mongoDB, logLevel)
-	transactionRepository = repositories.NewTransactionRepository(mongoURL, mongoDB, logLevel)
+	adminRepository := repositories.NewAdminRepository(mongoURL, mongoDB, logLevel)
+	customerRepository := repositories.NewCustomerRepository(mongoURL, mongoDB, logLevel)
+	transactionRepository := repositories.NewTransactionRepository(mongoURL, mongoDB, logLevel)
 
 	authController := controllers.NewAuthController(adminRepository, apiSecret, logLevel)
 	transactionController := controllers.NewTransactionController(customerRepository, transactionRepository,

@@ -53,7 +53,7 @@ func (u *AdminRepositoryImpl) getMongoClient() (*mongo.Client, context.Context) 
 }
 
 func (u *AdminRepositoryImpl) getCollection(client *mongo.Client) *mongo.Collection {
-	return client.Database(u.mongoDB).Collection("customer_data")
+	return client.Database(u.mongoDB).Collection("admin_data")
 }
 
 func (u *AdminRepositoryImpl) findSingleResult(ctx context.Context, collection *mongo.Collection,
