@@ -26,7 +26,7 @@ type TransactionResponse struct {
 }
 
 func GetTransactionResponses(transactionData []models.TransactionData, customerData []models.CustomerData) []TransactionResponse {
-	var customerIdMap map[string]models.CustomerData
+	customerIdMap := make(map[string]models.CustomerData)
 	for _, customer := range customerData {
 		customerIdMap[customer.Id] = customer
 	}
