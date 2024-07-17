@@ -24,23 +24,24 @@ func NewAdminRepository(mongoURL string, mongoDB string, logLevel string) *Admin
 }
 
 func (u *AdminRepositoryImpl) FindById(id string) (*models.AdminData, error) {
-	client, ctx := u.getMongoClient()
+	client, ctx, cancel := u.getMongoClient()
 	defer utils.Disconnect(client, ctx)
 	filter := bson.M{"_id": id}
-	return u.findSingleResult(ctx, u.getCollection(client), filter)
+	return u.findSingleResult(ctx, u.getCollection(client), cancel, filter)
 }
 
 func (u *AdminRepositoryImpl) FindByEmail(userId string) (*models.AdminData, error) {
-	client, ctx := u.getMongoClient()
+	client, ctx, cancel := u.getMongoClient()
 	defer utils.Disconnect(client, ctx)
 	filter := bson.M{"email": userId}
-	return u.findSingleResult(ctx, u.getCollection(client), filter)
+	return u.findSingleResult(ctx, u.getCollection(client), cancel, filter)
 }
 
 func (u *AdminRepositoryImpl) AddUser(adminData models.AdminData) error {
-	client, ctx := u.getMongoClient()
+	client, ctx, cancel := u.getMongoClient()
 	defer utils.Disconnect(client, ctx)
 	_, err := u.getCollection(client).InsertOne(ctx, adminData)
+	defer cancel()
 	if err != nil {
 		u.logger.Error("Error in saving admin data to Mongo", err)
 		return err
@@ -48,7 +49,7 @@ func (u *AdminRepositoryImpl) AddUser(adminData models.AdminData) error {
 	return nil
 }
 
-func (u *AdminRepositoryImpl) getMongoClient() (*mongo.Client, context.Context) {
+func (u *AdminRepositoryImpl) getMongoClient() (*mongo.Client, context.Context, context.CancelFunc) {
 	return utils.GetMongoConnection(u.mongoURL)
 }
 
@@ -56,12 +57,13 @@ func (u *AdminRepositoryImpl) getCollection(client *mongo.Client) *mongo.Collect
 	return client.Database(u.mongoDB).Collection("admin_data")
 }
 
-func (u *AdminRepositoryImpl) findSingleResult(ctx context.Context, collection *mongo.Collection,
+func (u *AdminRepositoryImpl) findSingleResult(ctx context.Context, collection *mongo.Collection, cancel context.CancelFunc,
 	filter interface{}) (*models.AdminData, error) {
 
 	result := models.AdminData{}
 	singleResult := collection.FindOne(ctx, filter)
 	err := singleResult.Decode(&result)
+	defer cancel()
 	if err != nil {
 		u.logger.Error("Error in decoding admin data received from Mongo", err)
 		return nil, err

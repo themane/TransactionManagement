@@ -13,24 +13,25 @@ const (
 	connectTimeoutSecs = 30
 )
 
-func GetMongoConnection(mongoURL string) (*mongo.Client, context.Context) {
+func GetMongoConnection(mongoURL string) (*mongo.Client, context.Context, context.CancelFunc) {
 	cmdMonitor := &event.CommandMonitor{
 		Started: func(_ context.Context, evt *event.CommandStartedEvent) {
 			log.Print(evt.Command)
 		},
 	}
-	ctx, _ := context.WithTimeout(context.Background(), connectTimeoutSecs*time.Second)
-	// defer cancel()
+	ctx, cancel := context.WithTimeout(context.Background(), connectTimeoutSecs*time.Second)
 	client, err := mongo.Connect(ctx, options.Client().ApplyURI(mongoURL).SetMonitor(cmdMonitor))
 	if err != nil {
 		log.Fatal(err)
+		defer cancel()
 	}
 	err = client.Ping(ctx, nil)
 	if err != nil {
 		log.Fatal(err)
+		defer cancel()
 	}
 	log.Println("Successfully connected to MongoDB")
-	return client, ctx
+	return client, ctx, cancel
 }
 
 func Disconnect(client *mongo.Client, ctx context.Context) {
