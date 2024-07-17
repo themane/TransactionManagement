@@ -43,10 +43,11 @@ func main() {
 
 	r.GET("/ping", controllers.Ping)
 	r.POST("/admin/login", authController.Login)
-	r.GET("/admin/register", authController.Register)
-	r.GET("/admin/token/refresh", authController.RefreshToken)
+	r.POST("/admin/register", authController.Register)
+	r.HEAD("/admin/token", authController.RefreshToken)
 	r.POST("/transaction", transactionController.AddTransaction)
 	r.GET("/transaction", transactionController.GetTransactions)
+	r.GET("/customer", transactionController.GetCustomers)
 
 	err := r.Run()
 	if err != nil {

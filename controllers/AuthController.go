@@ -78,7 +78,7 @@ func (a *AuthController) Login(c *gin.Context) {
 // @Tags data retrieval
 // @Accept json
 // @Produce json
-// @Router /token/refresh [post]
+// @Router /token/refresh [head]
 func (a *AuthController) RefreshToken(c *gin.Context) {
 	email, err := utils.RefreshTokenValid(c, a.apiSecret)
 	if err != nil {

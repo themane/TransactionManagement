@@ -37,6 +37,14 @@ func NewTransactionController(customerRepository repoModels.CustomerRepository,
 	}
 }
 
+// AddTransaction godoc
+// @Summary Adds a new transaction in DB
+// @Description Registration of a new transaction for 1 product and 1 customer
+// @Tags transaction
+// @Accept json
+// @Produce string
+// @Success 200 {string}
+// @Router /transaction [post]
 func (t *TransactionController) AddTransaction(c *gin.Context) {
 	email, err := utils.ExtractUsername(c, t.apiSecret)
 	if err != nil {
@@ -70,6 +78,14 @@ func (t *TransactionController) AddTransaction(c *gin.Context) {
 	c.JSON(201, "Created transaction successfully")
 }
 
+// GetTransactions godoc
+// @Summary Gets transactions from DB
+// @Description Returns a list of transactions based on search criteria
+// @Tags transaction
+// @Accept json
+// @Produce json
+// @Success 200 {object} []controllerModels.TransactionResponse
+// @Router /transaction [get]
 func (t *TransactionController) GetTransactions(c *gin.Context) {
 	email, err := utils.ExtractUsername(c, t.apiSecret)
 	if err != nil {
@@ -111,6 +127,14 @@ func (t *TransactionController) GetTransactions(c *gin.Context) {
 	c.JSON(200, response)
 }
 
+// GetCustomers godoc
+// @Summary Gets customers from DB
+// @Description Returns a list of customers based on search criteria
+// @Tags customer
+// @Accept json
+// @Produce json
+// @Success 200 {object} []models.CustomerData
+// @Router /customer [get]
 func (t *TransactionController) GetCustomers(c *gin.Context) {
 	email, err := utils.ExtractUsername(c, t.apiSecret)
 	if err != nil {
