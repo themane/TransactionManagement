@@ -11,12 +11,10 @@ import (
 	"github.com/gin-gonic/gin"
 	"log"
 	"os"
-	"strconv"
 	"sync"
 )
 
 var once = sync.Once{}
-var baseURL string
 var mongoDB string
 var mongoUrlSecretName string
 var apiSecretName string
@@ -78,11 +76,6 @@ func getHandlers() (*controllers.AuthController, *controllers.TransactionControl
 }
 
 func initialize() {
-	var err error
-	baseURL = os.Getenv("BASE_URL")
-	if baseURL == "" {
-		baseURL = "http://localhost:8080"
-	}
 	mongoUrlSecretName = os.Getenv("MONGO_SECRET_NAME")
 	mongoDB = os.Getenv("MONGO_DB")
 	if mongoUrlSecretName == "" || mongoDB == "" {
@@ -92,16 +85,6 @@ func initialize() {
 	apiSecretName = os.Getenv("API_SECRET_NAME")
 	if apiSecretName == "" {
 		apiSecretName = "API_SECRET"
-	}
-
-	transactionRetriesString := os.Getenv("TRANSACTION_RETRIES")
-	if transactionRetriesString == "" {
-		transactionRetriesString = "3"
-	}
-	log.Println("USING TRANSACTION_RETRIES: " + transactionRetriesString)
-	transactionRetries, err = strconv.Atoi(transactionRetriesString)
-	if err != nil {
-		log.Fatal(err)
 	}
 
 	logLevel = os.Getenv("LOG_LEVEL")

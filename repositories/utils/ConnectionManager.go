@@ -19,13 +19,9 @@ func GetMongoConnection(mongoURL string) (*mongo.Client, context.Context) {
 			//log.Print(evt.Command)
 		},
 	}
-	ctx, _ := context.WithTimeout(context.Background(), connectTimeoutSecs*time.Second)
-	client, err := mongo.NewClient(options.Client().ApplyURI(mongoURL).SetMonitor(cmdMonitor))
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	err = client.Connect(ctx)
+	ctx, cancel := context.WithTimeout(context.Background(), connectTimeoutSecs*time.Second)
+	defer cancel()
+	client, err := mongo.Connect(ctx, options.Client().ApplyURI(mongoURL).SetMonitor(cmdMonitor))
 	if err != nil {
 		log.Fatal(err)
 	}
