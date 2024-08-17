@@ -1,0 +1,55 @@
+steps:
+  - name: gcr.io/k8s-skaffold/pack
+    args:
+      - build
+      - 'gcr.io/$PROJECT_ID/$_SERVICE_NAME:$COMMIT_SHA'
+      - '--builder=gcr.io/buildpacks/builder:v1'
+      - '--path=.'
+    id: Buildpack
+    entrypoint: pack
+  - name: gcr.io/cloud-builders/docker
+    args:
+      - push
+      - 'gcr.io/$PROJECT_ID/$_SERVICE_NAME:$COMMIT_SHA'
+    id: Push
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk:slim'
+    args:
+      - run
+      - services
+      - update
+      - $_SERVICE_NAME
+      - '--platform=managed'
+      - '--image=gcr.io/$PROJECT_ID/$_SERVICE_NAME:$COMMIT_SHA'
+      - >-
+        --labels=managed-by=gcp-cloud-build-deploy-cloud-run,commit-sha=$COMMIT_SHA,gcb-build-id=$BUILD_ID,gcb-trigger-id=$_TRIGGER_ID,$_LABELS
+      - '--region=$_DEPLOY_REGION'
+      - '--quiet'
+      - '--set-env-vars'
+      - 'MONGO_DB=$_MONGO_DB'
+      - '--set-env-vars'
+      - 'MONGO_SECRET_NAME=projects/$PROJECT_ID/secrets/$_MONGO_SECRET_NAME/versions/latest'
+      - '--set-env-vars'
+      - 'API_SECRET_NAME=projects/$PROJECT_ID/secrets/$_API_SECRET_NAME/versions/latest'
+      - '--set-env-vars'
+      - 'TOKEN_LIFESPAN_MINUTES=$_TOKEN_LIFESPAN_MINUTES'
+      - '--set-env-vars'
+      - 'REFRESH_TOKEN_LIFESPAN_MINUTES=$_REFRESH_TOKEN_LIFESPAN_MINUTES'
+      - '--set-env-vars'
+      - 'REGISTRATION_RETRIES=$_REGISTRATION_RETRIES'
+    id: Deploy
+    entrypoint: gcloud
+images:
+  - 'gcr.io/$PROJECT_ID/$_SERVICE_NAME:$COMMIT_SHA'
+options:
+  substitutionOption: ALLOW_LOOSE
+substitutions:
+  _PLATFORM: managed
+  _SERVICE_NAME: txn-management
+  _DEPLOY_REGION: asia-south2
+  _LABELS: gcb-trigger-id=b66e0670-4abf-4ac0-8635-cb26b3d23488
+  _TRIGGER_ID: b66e0670-4abf-4ac0-8635-cb26b3d23488
+  _GCR_HOSTNAME: asia.gcr.io
+tags:
+  - gcp-cloud-build-deploy-cloud-run
+  - gcp-cloud-build-deploy-cloud-run-managed
+  - txn-manage-server

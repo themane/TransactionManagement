@@ -1,0 +1,6 @@
+runtime: go122
+
+env_variables:
+  MONGO_DB: "txn"
+  TOKEN_LIFESPAN_MINUTES: 10
+  REFRESH_TOKEN_LIFESPAN_MINUTES: 60
