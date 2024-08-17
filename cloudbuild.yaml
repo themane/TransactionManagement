@@ -42,6 +42,7 @@ images:
   - 'gcr.io/$PROJECT_ID/$_SERVICE_NAME:$COMMIT_SHA'
 options:
   substitutionOption: ALLOW_LOOSE
+  logging: CLOUD_LOGGING_ONLY
 substitutions:
   _PLATFORM: managed
   _SERVICE_NAME: txn-management
